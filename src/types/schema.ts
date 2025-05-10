@@ -14,3 +14,10 @@ export const LoginSchema = z
 	.extend({
 		"cf-turnstile": TurnstileCaptchaSchema.shape["cf-turnstile"],
 	});
+
+	export const EnvironmentSchema = z.object({
+		key: z.string().min(1, "Key is required"),
+		label: z.string().min(1, "Label is required"),
+		description: z.string().optional(),
+		encryptedValue: z.string().min(1, "Encrypted value is required"),
+	});

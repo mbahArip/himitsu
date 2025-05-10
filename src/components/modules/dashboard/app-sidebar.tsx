@@ -2,43 +2,28 @@
 
 import {
 	Book,
-	ChevronRight,
 	Key,
 	LayoutDashboard,
+	LifeBuoy,
 	LoaderCircle,
 	Lock,
-	LogOut,
 	Settings,
-	SidebarClose,
-	SidebarOpen,
 	X,
 	type LucideProps,
 } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
-import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import {
-	Collapsible,
-	CollapsibleContent,
-	CollapsibleTrigger,
-} from "~/components/ui/collapsible";
 import {
 	Sidebar,
 	SidebarContent,
 	SidebarFooter,
 	SidebarGroup,
-	SidebarGroupContent,
-	SidebarGroupLabel,
 	SidebarHeader,
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
-	SidebarMenuSub,
-	SidebarMenuSubItem,
-	SidebarSeparator,
 	useSidebar,
 } from "~/components/ui/sidebar";
 import { useIsMobile } from "~/hooks/use-mobile";
@@ -107,7 +92,7 @@ export default function AppSidebar({
 		enviroments: {
 			folders: (Pick<
 				typeof environmentFolderModel.$inferSelect,
-				"id" | "name" | "privacy" | "color" | "createdAt" | "updatedAt"
+				"id" | "name" | "color" | "createdAt" | "updatedAt"
 			> & {
 				envs: Pick<
 					typeof environmentModel.$inferSelect,
@@ -141,302 +126,61 @@ export default function AppSidebar({
 			collapsible="icon"
 			{...props}
 		>
-			<SidebarHeader>
-				<SidebarMenu>
-					<SidebarMenuItem className="py-2">
-						<SidebarMenuButton
-							size={"lg"}
-							asChild
-							className="hover:bg-transparent active:bg-transparent"
-						>
-							<Link
-								href={"/dashboard"}
-								className="group/logo"
-							>
-								<div className="flex aspect-square size-10 group-data-[collapsible=icon]:size-8 items-center justify-center rounded-lg text-sidebar-primary group-hover/logo:bg-sidebar-primary group-hover/logo:text-sidebar-primary-foreground transition-all duration-300 ease-in-out border-sidebar-primary drop-shadow-sm bg-sidebar drop-shadow-sidebar-primary group-data-[collapsible=icon]:drop-shadow-transparent">
-									<Key className="size-5" />
-								</div>
-								<div className="grid flex-1 text-left text-base leading-tight">
-									<span className="truncate font-bold">
-										Himitsu
-									</span>
-									<span className="truncate text-xs text-muted-foreground">
-										Env Manager
-									</span>
-								</div>
-							</Link>
-						</SidebarMenuButton>
-					</SidebarMenuItem>
-				</SidebarMenu>
-			</SidebarHeader>
-
-			<SidebarContent>
-				{navigations.map((item) => {
-					const NavItem = ({ item }: { item: NavigationItem }) => (
-						<SidebarMenu key={`nav-${item.href}`}>
-							<SidebarMenuItem>
-								<SidebarMenuButton
-									asChild
-									isActive={
-										item.href === "/dashboard"
-											? pathname === "/dashboard"
-											: pathname.startsWith(item.href)
-									}
-									tooltip={{
-										children:
-											state === "collapsed" ? (
-												<div className="flex flex-col">
-													<b className="text-sm">
-														{item.title}
-													</b>
-													<span className="text-xs">
-														{item.description}
-													</span>
-												</div>
-											) : (
-												item.description
-											),
-									}}
-								>
-									<Link href={item.href}>
-										{item.icon && <item.icon />}
-										<span>{item.title}</span>
-									</Link>
-								</SidebarMenuButton>
-							</SidebarMenuItem>
-						</SidebarMenu>
-					);
-
-					return "items" in item ? (
-						<SidebarGroup key={`nav-group-${item.title}`}>
-							<SidebarGroupLabel>{item.title}</SidebarGroupLabel>
-							<SidebarGroupContent>
-								{item.items.map((subItem) => (
-									<NavItem
-										item={subItem}
-										key={`nav-${subItem.href}`}
-									/>
-								))}
-							</SidebarGroupContent>
-						</SidebarGroup>
-					) : (
-						<SidebarGroup key={`nav-${item.title}`}>
-							<NavItem
-								item={item}
-								key={`nav-${item.href}`}
-							/>
-						</SidebarGroup>
-					);
-				})}
-
-				<SidebarSeparator className="mx-0" />
-
-				<SidebarGroup>
-					<SidebarGroupLabel>Manage</SidebarGroupLabel>
+			{/* Icon sidebar */}
+			<Sidebar
+				collapsible="none"
+				className="!w-[calc(var(--sidebar-width-icon)_+_1px)] border-r"
+			>
+				<SidebarHeader>
 					<SidebarMenu>
-						<Collapsible
-							asChild
-							className="group"
-						>
-							<SidebarMenuItem>
-								<CollapsibleTrigger asChild>
-									<SidebarMenuButton>
-										<Key />
-										<span>Environments</span>
-										<ChevronRight className="size-4 transition-transform duration-200 ease-in-out group-data-[state=open]:rotate-90" />
-									</SidebarMenuButton>
-								</CollapsibleTrigger>
-								<AnimatePresence
-									key={"envs"}
-									presenceAffectsLayout
-									mode="sync"
-								>
-									<CollapsibleContent>
-										<SidebarMenuSub>
-											<SidebarMenuSubItem>
-												<SidebarMenuButton asChild>
-													<motion.div
-														initial={{
-															opacity: 0,
-															x: -10,
-														}}
-														animate={{
-															opacity: 1,
-															x: 0,
-														}}
-														exit={{
-															opacity: 0,
-															x: -10,
-														}}
-														transition={{
-															duration: 0.2,
-															ease: "linear",
-														}}
-													>
-														<Link
-															href={
-																"/dashboard/environments"
-															}
-														>
-															All Environments
-														</Link>
-													</motion.div>
-												</SidebarMenuButton>
-											</SidebarMenuSubItem>
-										</SidebarMenuSub>
-									</CollapsibleContent>
-								</AnimatePresence>
-							</SidebarMenuItem>
-						</Collapsible>
-					</SidebarMenu>
-				</SidebarGroup>
-			</SidebarContent>
-
-			<SidebarFooter>
-				<SidebarMenu>
-					{bottomsNavigations.map((item) => (
-						<SidebarMenuItem key={`nav-bottom-${item.href}`}>
+						<SidebarMenuItem>
 							<SidebarMenuButton
 								asChild
-								isActive={
-									pathname === "/dashboard"
-										? item.href === "/dashboard"
-										: pathname.startsWith(item.href)
-								}
-								tooltip={{
-									children:
-										state === "collapsed" ? (
-											<div className="flex flex-col">
-												<b className="text-sm">
-													{item.title}
-												</b>
-												<span className="text-xs">
-													{item.description}
-												</span>
-											</div>
-										) : (
-											item.description
-										),
-								}}
-								className={cn(
-									item.destructive &&
-										"text-destructive hover:bg-destructive/10 hover:text-destructive-foreground"
-								)}
-								onSelect={() => {
-									item.onClick?.();
-								}}
+								tooltip={"Himitsu"}
 							>
-								<Link href={item.href}>
-									{item.icon && <item.icon />}
-									<span>{item.title}</span>
+								<Link
+									href={"/dashboard"}
+									className="aspect-square rounded-lg grid place-items-center bg-primary text-primary-foreground"
+								>
+									<Key />
 								</Link>
 							</SidebarMenuButton>
 						</SidebarMenuItem>
-					))}
-					{!isMobile && (
-						<SidebarMenuItem>
-							<SidebarMenuButton
-								tooltip={{
-									children:
-										state === "collapsed" ? (
-											<div className="flex flex-col">
-												<b className="text-sm font-semibold">
-													Collapse/Extend Sidebar
-												</b>
-												<span className="text-xs">
-													Press{" "}
-													<kbd className="font-semibold">
-														Ctrl
-													</kbd>{" "}
-													+{" "}
-													<kbd className="font-semibold">
-														B
-													</kbd>{" "}
-													to toggle sidebar
-												</span>
-											</div>
-										) : (
-											<>
-												Press{" "}
-												<kbd className="font-semibold">
-													Ctrl
-												</kbd>{" "}
-												+{" "}
-												<kbd className="font-semibold">
-													B
-												</kbd>{" "}
-												to toggle sidebar
-											</>
-										),
-								}}
-								onClick={toggleSidebar}
-							>
-								{state === "collapsed" ? (
-									<>
-										<SidebarOpen />
-										Expand
-									</>
-								) : (
-									<>
-										<SidebarClose />
-										Collapse
-									</>
-								)}
-							</SidebarMenuButton>
-						</SidebarMenuItem>
-					)}
+					</SidebarMenu>
+				</SidebarHeader>
 
-					<SidebarSeparator className="mx-0" />
+				<SidebarContent className="items-center justify-center">
+					<SidebarGroup>
+						<SidebarMenu>
+							<SidebarMenuItem>
+								<SidebarMenuButton tooltip={"Manage Access"}>
+									<Lock />
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+						</SidebarMenu>
 
-					<SidebarMenuItem>
-						<SidebarMenuButton
-							className={cn(
-								"text-destructive hover:bg-destructive/10 hover:text-destructive active:bg-destructive/10 active:text-destructive cursor-pointer"
-							)}
-							tooltip={{
-								children:
-									state === "collapsed" ? (
-										<div className="flex flex-col">
-											<b className="text-sm">Logout</b>
-											<span className="text-xs">
-												Logout from your account
-											</span>
-										</div>
-									) : (
-										"Logout from your account"
-									),
-							}}
-							onClick={() => {
-								toast.loading("Logging out...", {
-									description: undefined,
-									id: "logout",
-								});
-								authClient
-									.signOut()
-									.then(() => {
-										toast.success(
-											"Logged out successfully",
-											{
-												id: "logout",
-											}
-										);
-										router.refresh();
-									})
-									.catch((err) => {
-										toast.error("Failed to logout", {
-											id: "logout",
-											description: err.message,
-										});
-									});
-							}}
-						>
-							<LogOut />
-							<span>Logout</span>
-						</SidebarMenuButton>
-					</SidebarMenuItem>
-				</SidebarMenu>
-				<User />
-			</SidebarFooter>
+						<SidebarMenu>
+							<SidebarMenuItem>
+								<SidebarMenuButton tooltip={"Getting Started"}>
+									<LifeBuoy />
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+						</SidebarMenu>
+
+						<SidebarMenu>
+							<SidebarMenuItem>
+								<SidebarMenuButton tooltip={"Settings"}>
+									<Settings />
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+						</SidebarMenu>
+					</SidebarGroup>
+				</SidebarContent>
+
+				<SidebarFooter>
+					<User />
+				</SidebarFooter>
+			</Sidebar>
 		</Sidebar>
 	);
 }
@@ -448,10 +192,10 @@ function User() {
 		<SidebarMenu>
 			<SidebarMenuItem>
 				<SidebarMenuButton
-					size={"lg"}
-					className="pointer-events-none"
+					className="p-0 rounded-full"
+					tooltip={data?.user.name}
 				>
-					<Avatar className="border cursor-default select-none group-data-[collapsible=icon]:size-8">
+					<Avatar className="border cursor-default select-none size-8 group-data-[collapsible=icon]:size-8">
 						<AvatarImage
 							src={
 								isPending || error
@@ -479,18 +223,6 @@ function User() {
 							)}
 						</AvatarFallback>
 					</Avatar>
-					<div className="grid flex-1 text-left text-sm leading-tight">
-						<span className="font-semibold truncate">
-							{isPending
-								? "Loading..."
-								: error
-								? "Error"
-								: data?.user.name ?? "Unknown"}
-						</span>
-						<span className="text-xs truncate text-muted-foreground">
-							{data?.user.email}
-						</span>
-					</div>
 				</SidebarMenuButton>
 			</SidebarMenuItem>
 		</SidebarMenu>
