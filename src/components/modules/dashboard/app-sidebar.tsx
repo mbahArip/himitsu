@@ -1,129 +1,111 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import {
-	Book,
+	ChevronDown,
+	Folder,
+	FolderOpen,
+	FolderPlus,
+	Grid2X2,
 	Key,
-	LayoutDashboard,
-	LifeBuoy,
+	LaptopMinimal,
 	LoaderCircle,
 	Lock,
+	LogOut,
+	Moon,
+	Plus,
+	RefreshCw,
+	Search,
 	Settings,
+	ShieldPlus,
+	Sun,
 	X,
-	type LucideProps,
 } from "lucide-react";
+import { useTheme } from "next-themes";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import * as React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { Button } from "~/components/ui/button";
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "~/components/ui/collapsible";
+import {
+	DropdownMenu,
+	DropdownMenuCheckboxItem,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
+import { Input } from "~/components/ui/input";
+import { ScrollArea } from "~/components/ui/scroll-area";
 import {
 	Sidebar,
 	SidebarContent,
 	SidebarFooter,
 	SidebarGroup,
+	SidebarGroupAction,
+	SidebarGroupLabel,
 	SidebarHeader,
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
+	SidebarMenuSub,
+	SidebarMenuSubButton,
+	SidebarMenuSubItem,
+	SidebarSeparator,
 	useSidebar,
 } from "~/components/ui/sidebar";
-import { useIsMobile } from "~/hooks/use-mobile";
+import { API_URL } from "~/constant";
+import { fetchAllEnvironments } from "~/data/environments";
+import { useShortcut } from "~/hooks/use-shortcut";
 import { authClient } from "~/lib/auth.client";
-import { cn } from "~/lib/utils";
-import type { environmentFolderModel, environmentModel } from "~/model";
-
-type NavigationItem = {
-	title: React.ReactNode;
-	icon?: React.ComponentType<LucideProps>;
-	description: string;
-	href: string;
-	onClick?: () => void;
-	destructive?: boolean;
-};
-type NavigationGroup = {
-	title: React.ReactNode;
-	items: NavigationItem[];
-};
-
-const navigations: (NavigationItem | NavigationGroup)[] = [
-	{
-		title: "Dashboard",
-		icon: LayoutDashboard,
-		description: "View stats and activity",
-		href: "/dashboard",
-	},
-	{
-		title: "Manage",
-		items: [
-			{
-				title: "Environments",
-				icon: Key,
-				description: "Manage your saved environments",
-				href: "/dashboard/environments",
-			},
-			{
-				title: "Key Access",
-				icon: Lock,
-				description: "Manage access to your environments",
-				href: "/dashboard/key-access",
-			},
-		],
-	},
-] as const;
-const bottomsNavigations: NavigationItem[] = [
-	{
-		title: "How to use",
-		icon: Book,
-		description: "Read on how to use Himitsu",
-		href: "/how-to-use",
-	},
-	{
-		title: "Settings",
-		icon: Settings,
-		description: "Manage your account settings",
-		href: "/dashboard/settings",
-	},
-] as const;
+import { apiURLBuilder, cn } from "~/lib/utils";
 
 export default function AppSidebar({
-	data,
 	...props
-}: React.ComponentProps<typeof Sidebar> & {
-	data: {
-		enviroments: {
-			folders: (Pick<
-				typeof environmentFolderModel.$inferSelect,
-				"id" | "name" | "color" | "createdAt" | "updatedAt"
-			> & {
-				envs: Pick<
-					typeof environmentModel.$inferSelect,
-					| "id"
-					| "name"
-					| "description"
-					| "privacy"
-					| "createdAt"
-					| "updatedAt"
-				>[];
-			})[];
-			envs: Pick<
-				typeof environmentModel.$inferSelect,
-				| "id"
-				| "name"
-				| "description"
-				| "privacy"
-				| "createdAt"
-				| "updatedAt"
-			>[];
-		};
-	};
-}) {
-	const { state, toggleSidebar } = useSidebar();
-	const isMobile = useIsMobile();
-	const pathname = usePathname();
-	const router = useRouter();
+}: React.ComponentProps<typeof Sidebar>) {
+	const { toggleSidebar } = useSidebar();
+	const { theme, setTheme } = useTheme();
+	const [searchQuery, setSearchQuery] = React.useState<string>("");
+	const [themePending, startThemeTransition] = React.useTransition();
+	const { data, refetch, error, isError, isPending, isRefetching } = useQuery(
+		{
+			queryKey: ["environments", searchQuery],
+			queryFn: () =>
+				fetchAllEnvironments(
+					apiURLBuilder(API_URL.env, {
+						search: searchQuery,
+					})
+				),
+		}
+	);
+	const [mounted, setMounted] = React.useState(false);
+
+	React.useEffect(() => {
+		setMounted(true);
+	}, []);
+
+	const handleThemeChange = React.useCallback(
+		(newTheme: string) => {
+			startThemeTransition(() => {
+				setTheme(newTheme);
+			});
+		},
+		[setTheme]
+	);
 
 	return (
 		<Sidebar
 			collapsible="icon"
+			className="overflow-hidden [&>[data-sidebar=sidebar]]:flex-row"
+			style={
+				{
+					"--sidebar-width": "20rem",
+				} as React.CSSProperties
+			}
 			{...props}
 		>
 			{/* Icon sidebar */}
@@ -134,43 +116,55 @@ export default function AppSidebar({
 				<SidebarHeader>
 					<SidebarMenu>
 						<SidebarMenuItem>
-							<SidebarMenuButton
-								asChild
-								tooltip={"Himitsu"}
-							>
-								<Link
-									href={"/dashboard"}
-									className="aspect-square rounded-lg grid place-items-center bg-primary text-primary-foreground"
-								>
-									<Key />
-								</Link>
-							</SidebarMenuButton>
+							<div className="aspect-square rounded-full grid place-items-center text-primary">
+								<Key className="!size-6 absolute" />
+							</div>
 						</SidebarMenuItem>
 					</SidebarMenu>
 				</SidebarHeader>
 
-				<SidebarContent className="items-center justify-center">
+				<SidebarContent>
 					<SidebarGroup>
 						<SidebarMenu>
 							<SidebarMenuItem>
-								<SidebarMenuButton tooltip={"Manage Access"}>
-									<Lock />
+								<SidebarMenuButton
+									onClick={toggleSidebar}
+									size={"lg"}
+									className="grid place-items-center"
+								>
+									<Grid2X2 className="rotate-45" />
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+						</SidebarMenu>
+
+						<SidebarSeparator className="mx-0 my-2" />
+
+						<SidebarMenu>
+							<SidebarMenuItem>
+								<SidebarMenuButton
+									tooltip={"Manage Access"}
+									size={"lg"}
+									className="grid place-items-center"
+									asChild
+								>
+									<Link href={"/dashboard/access"}>
+										<Lock />
+									</Link>
 								</SidebarMenuButton>
 							</SidebarMenuItem>
 						</SidebarMenu>
 
 						<SidebarMenu>
 							<SidebarMenuItem>
-								<SidebarMenuButton tooltip={"Getting Started"}>
-									<LifeBuoy />
-								</SidebarMenuButton>
-							</SidebarMenuItem>
-						</SidebarMenu>
-
-						<SidebarMenu>
-							<SidebarMenuItem>
-								<SidebarMenuButton tooltip={"Settings"}>
-									<Settings />
+								<SidebarMenuButton
+									tooltip={"Settings"}
+									size={"lg"}
+									className="grid place-items-center"
+									asChild
+								>
+									<Link href={"/dashboard/settings"}>
+										<Settings />
+									</Link>
 								</SidebarMenuButton>
 							</SidebarMenuItem>
 						</SidebarMenu>
@@ -178,7 +172,222 @@ export default function AppSidebar({
 				</SidebarContent>
 
 				<SidebarFooter>
+					<SidebarMenu>
+						<DropdownMenu>
+							<SidebarMenuItem>
+								<DropdownMenuTrigger asChild>
+									<SidebarMenuButton tooltip={"Toggle Theme"}>
+										{!mounted ? (
+											<LoaderCircle className="animate-spin" />
+										) : themePending ? (
+											<LoaderCircle className="animate-spin" />
+										) : theme === "light" ? (
+											<Sun />
+										) : theme === "dark" ? (
+											<Moon />
+										) : (
+											<LaptopMinimal />
+										)}
+										Toggle Theme
+									</SidebarMenuButton>
+								</DropdownMenuTrigger>
+							</SidebarMenuItem>
+							<DropdownMenuContent
+								side="right"
+								align="end"
+							>
+								<DropdownMenuCheckboxItem
+									disabled={themePending}
+									checked={theme === "light"}
+									onCheckedChange={() => {
+										handleThemeChange("light");
+									}}
+								>
+									{themePending ? (
+										<LoaderCircle className="animate-spin" />
+									) : (
+										<Sun />
+									)}
+									Light
+								</DropdownMenuCheckboxItem>
+								<DropdownMenuCheckboxItem
+									disabled={themePending}
+									checked={theme === "dark"}
+									onCheckedChange={() => {
+										handleThemeChange("dark");
+									}}
+								>
+									{themePending ? (
+										<LoaderCircle className="animate-spin" />
+									) : (
+										<Moon />
+									)}
+									Dark
+								</DropdownMenuCheckboxItem>
+								<DropdownMenuCheckboxItem
+									disabled={themePending}
+									checked={theme === "system"}
+									onCheckedChange={() => {
+										handleThemeChange("system");
+									}}
+								>
+									{themePending ? (
+										<LoaderCircle className="animate-spin" />
+									) : (
+										<LaptopMinimal />
+									)}
+									System
+								</DropdownMenuCheckboxItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
+						<SidebarMenuItem>
+							<SidebarMenuButton
+								tooltip={"Log Out"}
+								className="text-destructive hover:bg-destructive/10 hover:text-destructive active:bg-destructive/10 active:text-destructive"
+							>
+								<LogOut />
+								Log Out
+							</SidebarMenuButton>
+						</SidebarMenuItem>
+					</SidebarMenu>
 					<User />
+				</SidebarFooter>
+			</Sidebar>
+
+			{/* Environments sidebar */}
+			<Sidebar
+				collapsible="none"
+				className="hidden flex-1 md:flex"
+			>
+				<SidebarHeader>
+					<Searchbar
+						value={searchQuery}
+						onValueChange={(value) => {
+							setSearchQuery(value);
+						}}
+					/>
+				</SidebarHeader>
+
+				<SidebarSeparator className="mx-0" />
+
+				<SidebarContent className="overflow-y-hidden">
+					<SidebarGroup className="py-0 px-0">
+						<SidebarMenu className="p-2">
+							<SidebarMenuItem className="items-center justify-between gap-2 flex text-muted-foreground ">
+								<span className="text-xs font-semibold">
+									Environments
+								</span>
+
+								<div className="items-center gap-2">
+									<Button
+										size={"icon"}
+										variant={"ghost"}
+										className="w-6 h-6 p-0"
+									>
+										<RefreshCw className="!size-4" />
+									</Button>
+									<Button
+										size={"icon"}
+										variant={"ghost"}
+										className="w-6 h-6 p-0"
+									>
+										<Plus className="!size-4" />
+									</Button>
+								</div>
+							</SidebarMenuItem>
+						</SidebarMenu>
+						{/* <SidebarGroupLabel>Environments</SidebarGroupLabel>
+						<SidebarGroupAction
+							disabled={isRefetching}
+							onSelect={() => refetch()}
+						>
+							<RefreshCw
+								className={cn(
+									"!size-4 text-muted-foreground",
+									isRefetching && "animate-spin"
+								)}
+							/>
+						</SidebarGroupAction> */}
+
+						<ScrollArea
+							className="w-full h-fit my-auto pr-4 "
+							scrollMaskClassName="from-sidebar h-10 via-sidebar/60"
+						>
+							<div
+								className={cn(
+									"h-[calc(100svh-7rem-2rem)] space-y-1 py-1 px-0",
+									isRefetching && "animate-pulse"
+								)}
+							>
+								{isPending ? (
+									<div className="h-full flex items-center justify-center flex-col gap-2">
+										<LoaderCircle className="animate-spin text-primary" />
+									</div>
+								) : isError ? (
+									<div className="h-full flex items-center justify-center flex-col gap-2">
+										<p className="text-destructive text-center text-sm">
+											{error.message ??
+												"Something went wrong while fetching environments"}
+										</p>
+										<Button
+											size={"sm"}
+											variant={"secondary"}
+											loading={isRefetching}
+											onClick={() => refetch()}
+										>
+											<RefreshCw />
+											Refresh
+										</Button>
+									</div>
+								) : false &&
+								  data?.folders.length === 0 &&
+								  data.envs.length === 0 ? (
+									<div className="h-full flex items-center justify-center select-none">
+										{searchQuery ? (
+											<p className="text-muted-foreground text-center text-sm">
+												No environments found for{" "}
+												<span className="font-semibold">
+													{searchQuery}
+												</span>
+											</p>
+										) : (
+											<p className="text-muted-foreground text-center text-sm">
+												You have no environments yet.
+												<br />
+												Create one to get started.
+											</p>
+										)}
+									</div>
+								) : (
+									<>
+										{Array.from({ length: 10 }).map(
+											(_, i) => (
+												<FolderItems
+													key={`folder-${i}`}
+													open={false}
+													onOpenChange={() => {}}
+												/>
+											)
+										)}
+										{/* {data.folders.map((item) => (
+											<FolderItems key={item.id} />
+										))} */}
+										<SidebarMenu>
+											{data.envs.map((item) => (
+												<Item key={item.id} />
+											))}
+										</SidebarMenu>
+									</>
+								)}
+							</div>
+						</ScrollArea>
+					</SidebarGroup>
+				</SidebarContent>
+
+				<SidebarSeparator className="mx-0" />
+
+				<SidebarFooter className="p-0">
+					<NewButton />
 				</SidebarFooter>
 			</Sidebar>
 		</Sidebar>
@@ -226,5 +435,201 @@ function User() {
 				</SidebarMenuButton>
 			</SidebarMenuItem>
 		</SidebarMenu>
+	);
+}
+
+function Searchbar({
+	value,
+	onValueChange,
+	debounceDuration = 500,
+}: {
+	value: string;
+	onValueChange: (value: string) => void;
+	debounceDuration?: number;
+}) {
+	const [debouncedValue, setDebouncedValue] = React.useState<string>(value);
+	const inputRef = React.useRef<HTMLInputElement>(null);
+
+	useShortcut(
+		{
+			key: "s",
+			altKey: true,
+		},
+		() => {
+			if (inputRef.current) {
+				inputRef.current.focus();
+			}
+		}
+	);
+	React.useEffect(() => {
+		if (!debouncedValue) {
+			onValueChange("");
+			return;
+		}
+		const handler = setTimeout(() => {
+			onValueChange(debouncedValue);
+		}, debounceDuration);
+
+		return () => {
+			clearTimeout(handler);
+		};
+	}, [debouncedValue, debounceDuration, onValueChange]);
+
+	return (
+		<SidebarMenu>
+			<SidebarMenuItem className="space-y-1">
+				<Input
+					ref={inputRef}
+					prefix={<Search className="text-muted-foreground" />}
+					placeholder={`Search environments...`}
+					wrapperProps={{
+						className:
+							"rounded-full bg-background hover:bg-background/80 w-full",
+					}}
+					value={debouncedValue}
+					onValueChange={setDebouncedValue}
+				/>
+			</SidebarMenuItem>
+		</SidebarMenu>
+	);
+}
+function NewButton() {
+	const [isOpen, setIsOpen] = React.useState(false);
+	const router = useRouter();
+	useShortcut(
+		{
+			key: "a",
+			altKey: true,
+		},
+		() => {
+			setIsOpen(true);
+		}
+	);
+
+	return (
+		<DropdownMenu
+			open={isOpen}
+			onOpenChange={setIsOpen}
+		>
+			<SidebarMenu>
+				<SidebarMenuItem>
+					<DropdownMenuTrigger asChild>
+						<SidebarMenuButton
+							className="font-semibold rounded-none"
+							size={"lg"}
+						>
+							<Plus />
+							New Environment
+							<ChevronDown className="opacity-50 group-data-[state=open]:rotate-90 transition ml-auto" />
+						</SidebarMenuButton>
+					</DropdownMenuTrigger>
+				</SidebarMenuItem>
+			</SidebarMenu>
+			<DropdownMenuContent className="w-(--radix-dropdown-menu-trigger-width)">
+				<DropdownMenuItem
+					onSelect={() => {
+						router.push("/dashboard/environments/create");
+					}}
+				>
+					<ShieldPlus />
+					New Environment
+				</DropdownMenuItem>
+				<DropdownMenuItem
+					onSelect={() => {
+						router.push("/dashboard/environments/create-folder");
+					}}
+				>
+					<FolderPlus />
+					New Folder
+				</DropdownMenuItem>
+			</DropdownMenuContent>
+		</DropdownMenu>
+	);
+}
+
+function FolderItems({
+	open,
+	onOpenChange,
+}: {
+	open?: boolean;
+	onOpenChange?: (open: boolean) => void;
+}) {
+	const [isOpen, setIsOpen] = React.useState<boolean>(open ?? false);
+	const [pending, startTransition] = React.useTransition();
+
+	const handleOpenChange = React.useCallback(
+		(open: boolean) => {
+			startTransition(() => {
+				setIsOpen(open);
+				onOpenChange?.(open);
+			});
+		},
+		[onOpenChange]
+	);
+
+	return (
+		<Collapsible
+			className={cn("group/collapsible", pending && "animate-pulse")}
+			open={isOpen}
+			onOpenChange={handleOpenChange}
+			disabled={pending}
+			asChild
+		>
+			<SidebarMenu>
+				<SidebarMenuItem>
+					<CollapsibleTrigger
+						asChild
+						className="grow-0"
+					>
+						<SidebarMenuButton title="Lorem Ipsum Dolor Sit Amet Consectetur Adipiscing Elit">
+							{isOpen ? (
+								<FolderOpen className="text-muted-foreground" />
+							) : (
+								<Folder className="text-muted-foreground" />
+							)}
+							<span className="font-semibold truncate break-all whitespace-pre-wrap line-clamp-1">
+								Lorem Ipsum Dolor Sit Amet Consectetur
+								Adipiscing Elit
+							</span>
+							<ChevronDown className="opacity-50 group-data-[state=open]/collapsible:-rotate-180 transition ml-auto" />
+						</SidebarMenuButton>
+					</CollapsibleTrigger>
+
+					<CollapsibleContent>
+						<SidebarMenuSub>
+							{Array.from({ length: 3 }).map((_, i) => (
+								<Item
+									key={`sub-item-${i}`}
+									sub
+								/>
+							))}
+						</SidebarMenuSub>
+					</CollapsibleContent>
+				</SidebarMenuItem>
+			</SidebarMenu>
+		</Collapsible>
+	);
+}
+
+function Item({ sub }: { sub?: boolean }) {
+	const MenuItem = React.useMemo(
+		() => (sub ? SidebarMenuSubItem : SidebarMenuItem),
+		[sub]
+	);
+	const MenuButton = React.useMemo(
+		() => (sub ? SidebarMenuSubButton : SidebarMenuButton),
+		[sub]
+	);
+
+	return (
+		<MenuItem>
+			<MenuButton asChild>
+				<Link href={"/dashboard/environments/1"}>
+					<p className="truncate break-all whitespace-pre-wrap line-clamp-1">
+						Lorem Ipsum Dolor Sit Amet Consectetur Adipiscing Elit
+					</p>
+				</Link>
+			</MenuButton>
+		</MenuItem>
 	);
 }

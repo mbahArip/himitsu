@@ -19,3 +19,16 @@ export function generateNanoId({
 } = {}): string {
   return customAlphabet(characters, length)();
 }
+
+export function apiURLBuilder(
+	baseUrl: string | URL,
+	searchParams: Record<string, unknown>
+) {
+	const url = new URL(baseUrl, "http://localhost:3000");
+	Object.entries(searchParams).forEach(([key, value]) => {
+		if (value) {
+			url.searchParams.append(key, String(value));
+		}
+	});
+	return url.toString();
+}

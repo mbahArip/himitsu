@@ -4,12 +4,11 @@ import { nextCookies } from "better-auth/next-js";
 import { admin, apiKey } from "better-auth/plugins";
 import { serverEnv } from "~/env/server";
 import { db } from "~/lib/db";
-import * as schema from "~/model";
 
 export const auth = betterAuth({
 	database: drizzleAdapter(db, {
-		provider: "sqlite",
-		schema: schema,
+		provider: "pg",
+		// schema: schema,
 		// debugLogs: true,
 	}),
 	plugins: [

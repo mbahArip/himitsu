@@ -16,6 +16,7 @@ export default async function DashboardLayout({
 		})
 		.catch(() => null);
 	if (!session) redirect("/login");
+
 	// const $env = db.query.environmentModel.findMany({
 	// 	columns: {
 	// 		id: true,
@@ -56,14 +57,7 @@ export default async function DashboardLayout({
 
 	return (
 		<SidebarProvider>
-			<AppSidebar
-				data={{
-					enviroments: {
-						folders: [],
-						envs: [],
-					},
-				}}
-			/>
+			<AppSidebar />
 			<SidebarInset>
 				<AppHeader />
 				<div className="[&>*[data-container]]:mx-auto [&>*[data-container]]:container min-h-screen p-6 has-[[data-no-padding]]:p-0 has-[[data-no-padding]]:[&>div[data-content]]:p-6">

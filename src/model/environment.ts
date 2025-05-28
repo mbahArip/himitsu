@@ -1,40 +1,33 @@
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { sql } from "drizzle-orm";
+import { json, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import type { z } from "zod";
-import { generateNanoId } from "~/lib/utils";
 import { userModel } from "~/model/auth";
 import type { EnvironmentSchema } from "~/types/schema";
 
-export const environmentFolderModel = sqliteTable(
-	"folder",
-	{
-		id: text("id").primaryKey().$defaultFn(generateNanoId),
-		userId: text("user_id")
-			.notNull()
-			.references(() => userModel.id, { onDelete: "cascade" }),
-
-		name: text("name").notNull(),
-		color: text("color"),
-
-		createdAt: integer("created_at", { mode: "timestamp" })
-			.notNull()
-			.$defaultFn(() => new Date()),
-		updatedAt: integer("updated_at", { mode: "timestamp" })
-			.notNull()
-			.$defaultFn(() => new Date()),
-	},
-	(self) => [
-		index("idx_environment_folder_id").on(self.id),
-		index("idx_environment_folder_user_id").on(self.userId),
-		index("idx_environment_folder_name").on(self.name),
-	]
-);
-
-export const environmentModel = sqliteTable("environment", {
-	id: text("id").primaryKey().$defaultFn(generateNanoId),
+export const folderModel = pgTable("folder", {
+	id: uuid("id").primaryKey().defaultRandom(),
 	userId: text("user_id")
 		.notNull()
 		.references(() => userModel.id, { onDelete: "cascade" }),
-	folderId: text("folder_id").references(() => environmentFolderModel.id, {
+
+	name: text("name").notNull(),
+	color: text("color"),
+
+	createdAt: timestamp("created_at", { mode: "string" })
+		.notNull()
+		.defaultNow(),
+	updatedAt: timestamp("updated_at", { mode: "string" })
+		.notNull()
+		.defaultNow()
+		.$onUpdateFn(() => sql`now()`),
+});
+
+export const environmentModel = pgTable("environment", {
+	id: uuid("id").primaryKey().defaultRandom(),
+	userId: text("user_id")
+		.notNull()
+		.references(() => userModel.id, { onDelete: "cascade" }),
+	folderId: uuid("folder_id").references(() => folderModel.id, {
 		onDelete: "cascade",
 	}),
 
@@ -44,16 +37,15 @@ export const environmentModel = sqliteTable("environment", {
 	privacy: text("privacy", { enum: ["public", "private"] })
 		.notNull()
 		.default("private"),
-	content: text("content", {
-		mode: "json",
-	})
+	content: json("content")
 		.notNull()
 		.$type<z.infer<typeof EnvironmentSchema>[]>(),
 
-	createdAt: integer("created_at", { mode: "timestamp" })
+	createdAt: timestamp("created_at", { mode: "string" })
 		.notNull()
-		.$defaultFn(() => new Date()),
-	updatedAt: integer("updated_at", { mode: "timestamp" })
+		.defaultNow(),
+	updatedAt: timestamp("updated_at", { mode: "string" })
 		.notNull()
-		.$defaultFn(() => new Date()),
+		.defaultNow()
+		.$onUpdateFn(() => sql`now()`),
 });

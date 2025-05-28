@@ -94,6 +94,7 @@ export function LoginForm() {
 										placeholder="gitgud@acme.com"
 										{...field}
 										type="email"
+										tabIndex={1}
 									/>
 								</FormControl>
 								<FormMessage />
@@ -113,6 +114,7 @@ export function LoginForm() {
 										placeholder="********"
 										{...field}
 										type="password"
+										tabIndex={2}
 									/>
 								</FormControl>
 								<FormMessage />
@@ -133,6 +135,7 @@ export function LoginForm() {
 										onCheckedChange={field.onChange}
 										disabled={field.disabled}
 										onBlur={field.onBlur}
+										tabIndex={3}
 									/>
 								</FormControl>
 								<FormLabel htmlFor="remember">
@@ -148,6 +151,7 @@ export function LoginForm() {
 							<FormItem>
 								<FormControl>
 									<Turnstile
+										tabIndex={-1}
 										siteKey={
 											clientEnv.NEXT_PUBLIC_TURNSTILE_SITE_KEY
 										}
@@ -178,16 +182,17 @@ export function LoginForm() {
 						)}
 					/>
 				</CardContent>
-				<CardFooter>
+				<CardFooter className="flex flex-col gap-2">
 					<Button
 						type="submit"
 						className="w-full"
 						loading={form.formState.isSubmitting}
+						tabIndex={4}
 					>
 						<LogIn />
 						Login
 					</Button>
-					{/* <Button
+					<Button
 						onClick={async () => {
 							if (
 								!form.getValues("email") ||
@@ -213,7 +218,7 @@ export function LoginForm() {
 						}}
 					>
 						Register
-					</Button> */}
+					</Button>
 				</CardFooter>
 			</form>
 		</Form>
