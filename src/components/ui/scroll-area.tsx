@@ -1,7 +1,7 @@
 "use client";
 
-import * as React from "react";
 import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
+import * as React from "react";
 
 import { cn } from "~/lib/utils";
 
@@ -21,31 +21,67 @@ function ScrollArea({
 	});
 	const viewportRef = React.useRef<HTMLDivElement>(null);
 
-	const handleScroll = React.useCallback(() => {
-		if (!useScrollMask || !viewportRef.current) return;
+	// const handleScroll = React.useCallback(() => {
+	// 	if (!useScrollMask || !viewportRef.current) return;
+
+	// 	const { scrollTop, scrollHeight, clientHeight } = viewportRef.current;
+	// 	setMask({
+	// 		top: scrollTop > 0,
+	// 		bottom: scrollTop + clientHeight < scrollHeight,
+	// 	});
+	// }, [useScrollMask]);
+
+	// React.useEffect(() => {
+	// 	if (!useScrollMask || !viewportRef.current) return;
+
+	// 	const viewport = viewportRef.current;
+	// 	viewport.addEventListener("scroll", handleScroll);
+
+	// 	const timeout = setTimeout(() => {
+	// 		handleScroll();
+	// 	}, 10);
+
+	// 	return () => {
+	// 		clearTimeout(timeout);
+	// 		viewport.removeEventListener("scroll", handleScroll);
+	// 	};
+	// }, [handleScroll, useScrollMask]);
+
+	const updateMask = React.useCallback(() => {
+		if (!viewportRef.current) return;
 
 		const { scrollTop, scrollHeight, clientHeight } = viewportRef.current;
-		setMask({
+
+		setMask((prev) => ({
+			...prev,
 			top: scrollTop > 0,
 			bottom: scrollTop + clientHeight < scrollHeight,
-		});
-	}, [useScrollMask]);
+		}));
+	}, []);
 
 	React.useEffect(() => {
 		if (!useScrollMask || !viewportRef.current) return;
 
 		const viewport = viewportRef.current;
-		viewport.addEventListener("scroll", handleScroll);
+		let ticking = false;
 
-		const timeout = setTimeout(() => {
-			handleScroll();
-		}, 10);
+		const onScroll = () => {
+			if (!ticking) {
+				requestAnimationFrame(() => {
+					updateMask();
+					ticking = false;
+				});
+				ticking = true;
+			}
+		};
+
+		viewport.addEventListener("scroll", onScroll);
+		updateMask();
 
 		return () => {
-			clearTimeout(timeout);
-			viewport.removeEventListener("scroll", handleScroll);
+			viewport.removeEventListener("scroll", onScroll);
 		};
-	}, [handleScroll, useScrollMask]);
+	}, [updateMask, useScrollMask]);
 
 	return (
 		<ScrollAreaPrimitive.Root
@@ -65,7 +101,7 @@ function ScrollArea({
 					<div
 						data-mask={"top"}
 						className={cn(
-							"absolute top-0 h-8 w-full bg-gradient-to-b from-background to-transparent pointer-events-none",
+							"absolute z-0 top-0 h-8 w-full bg-gradient-to-b from-background to-transparent pointer-events-none",
 							mask.top ? "opacity-100" : "opacity-0",
 							"transition-opacity duration-150 ease-in-out",
 							scrollMaskClassName
@@ -74,7 +110,7 @@ function ScrollArea({
 					<div
 						data-mask={"bottom"}
 						className={cn(
-							"absolute bottom-0 h-8 w-full bg-gradient-to-t from-background to-transparent pointer-events-none",
+							"absolute z-0 bottom-0 h-8 w-full bg-gradient-to-t from-background to-transparent pointer-events-none",
 							mask.bottom ? "opacity-100" : "opacity-0",
 							"transition-opacity duration-150 ease-in-out",
 							scrollMaskClassName
